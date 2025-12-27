@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>SISTEMA SAN JOSÉ 2026 - V25</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    body { background: #f1f5f9; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; }
+    .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 15px; padding: 15px; height: calc(100vh - 60px); }
+    .form-panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #cbd5e1; overflow-y: auto; }
+    .scroll-area { background: white; border: 1px solid #cbd5e1; border-radius: 12px 12px 0 0; overflow: auto; flex-grow: 1; }
+    table { width: 100%; border-collapse: collapse; min-width: 2000px; }
+    th { background: #1e293b; color: white; padding: 10px; font-size: 11px; position: sticky; top: 0; z-index: 10; }
+    td { padding: 8px; border: 1px solid #e2e8f0; font-size: 12px; text-align: center; }
+    .kpi-card { background: white; padding: 10px; border-radius: 8px; border-top: 4px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .barra-resta { background: #0f172a; color: white; padding: 15px 30px; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; gap: 40px; }
+    .fila-roja { background-color: #fef2f2; }
+    .fila-verde { background-color: #f0fdf4; }
+    .lbl { display: block; font-size: 10px; font-weight: 800; color: #334155; margin-bottom: 2px; text-transform: uppercase; }
+    .inp { border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; width: 100%; margin-bottom: 8px; font-size: 13px; }
+    .btn-delete { color: #ef4444; cursor: pointer; font-size: 16px; border: none; background: transparent; }
+    .btn-edit { color: #3b82f6; cursor: pointer; font-size: 16px; border: none; background: transparent; margin-right: 8px; }
+  </style>
+</head>
+<body>
+
+  <header class="bg-slate-900 text-white p-3 flex justify-between items-center no-print">
+    <h2 class="font-black italic text-lg uppercase">MERCADO SAN JOSÉ <span class="text-blue-400">2026</span></h2>
+    <div class="flex gap-2">
+      <button onclick="descargarExcel()" class="bg-emerald-600 px-4 py-2 rounded font-bold text-xs">EXCEL</button>
+      <button onclick="imprimirPantalla()" class="bg-slate-700 px-4 py-2 rounded font-bold text-xs">IMPRIMIR</button>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <aside class="form-panel no-print">
+      <h3 id="titulo_form" class="text-blue-700 font-black mb-3 border-b pb-1 uppercase text-xs italic">Registro de Pagos</h3>
+      
+      <input type="hidden" id="f_id_edit"> <div class="grid grid-cols-2 gap-2">
+        <div><label class="lbl">Año</label><select id="f_anio" class="inp font-bold"><option selected>2026</option><option>2025</option></select></div>
+        <div><label class="lbl">Concepto</label><select id="f_con" class="inp font-bold"><option>ALQUILER</option><option>VIGILANCIA</option><option>AGUA</option><option>LUZ</option><option>ARBITRIOS</option></select></div>
+      </div>
+
+      <label class="lbl">Tipo de Inquilino</label>
+      <select id="f_tipo" class="inp font-bold">
+          <option>SOCIO</option>
+          <option>INQUILINOS EXTERNOS</option>
+          <option>INQUILINOS DE FIERRO 1ER PISO</option>
+          <option>INQUILINOS (INTERNOS) MATERIAL NOBLE</option>
+          <option>INQUILINOS SEGUNDO PISO</option>
+          <option>FERIA 1</option>
+          <option>FERIA 2</option>
+      </select>
+
+      <label class="lbl">Apellido Paterno</label><input type="text" id="f_ap_pat" class="inp uppercase">
+      <label class="lbl">Apellido Materno</label><input type="text" id="f_ap_mat" class="inp uppercase">
+      <label class="lbl">Nombres</label><input type="text" id="f_nombres" class="inp uppercase">
+
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="lbl">DNI / RUC</label><input type="text" id="f_dni" class="inp"></div>
+        <div><label class="lbl">N° Puesto</label><input type="text" id="f_pue" class="inp"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="lbl">Fecha Inicio</label><input type="date" id="f_fec_ini" class="inp"></div>
+        <div><label class="lbl">Fecha Fin</label><input type="date" id="f_fec_fin" class="inp"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="lbl">N° Cuota</label><input type="text" id="f_cuo" class="inp" value="1"></div>
+        <div>
+            <label class="lbl">Mes</label>
+            <select id="f_mes" class="inp">
+                <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
+                <option>Julio</option><option>Agosto</option><option>Setiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+            </select>
+        </div>
+      </div>
+
+      <div class="bg-blue-50 p-2 rounded border border-blue-100 mb-2">
+        <div class="grid grid-cols-2 gap-2">
+            <div><label class="lbl text-red-600">Importe S/</label><input type="number" id="f_mon" class="inp font-bold" value="0.00"></div>
+            <div><label class="lbl">Estado</label><select id="f_est" onchange="checkP()" class="inp font-bold"><option value="PENDIENTE">PENDIENTE</option><option value="PAGADO">PAGADO</option></select></div>
+        </div>
+        
+        <div id="div_boleta">
+            <label class="lbl text-blue-600">N° Boleta</label>
+            <input type="text" id="f_nro_bol" class="inp" placeholder="Ejem: B001-0005">
+        </div>
+
+        <div id="p_form" class="hidden">
+            <label class="lbl text-green-700">Pagó S/</label><input type="number" id="f_pag" class="inp font-bold">
+            <label class="lbl text-green-700">Factura Sunat</label>
+            <input type="text" id="f_fac_sunat" class="inp" placeholder="N° FACTURA AL PAGAR">
+            <label class="lbl">Fecha de Pago</label><input type="date" id="f_fec_pago" class="inp">
+        </div>
+      </div>
+
+      <label class="lbl">Observaciones</label>
+      <textarea id="f_obs" class="inp h-12 uppercase"></textarea>
+
+      <button id="btn_guardar" onclick="guardarRegistro()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg uppercase text-xs tracking-widest">Registrar</button>
+      <button id="btn_cancelar" onclick="limpiar()" class="w-full bg-gray-400 text-white font-bold py-2 rounded-lg mt-2 hidden">Cancelar Edición</button>
+    </aside>
+
+    <main class="flex flex-col gap-2 overflow-hidden">
+      <div class="grid grid-cols-4 gap-3 no-print">
+        <div class="kpi-card border-red-500"><label class="lbl">Morosos Actuales</label><h4 id="k_moro" class="text-xl font-black text-red-600">0</h4></div>
+        <div class="kpi-card border-orange-500"><label class="lbl">Máximo Deudor</label><h4 id="k_top" class="text-[10px] font-black uppercase truncate">-</h4></div>
+        <div class="kpi-card border-purple-500"><label class="lbl">Concepto más Crítico</label><h4 id="k_critico" class="text-lg font-black text-slate-800">-</h4></div>
+        <div class="kpi-card border-green-500"><label class="lbl">Eficiencia Cobro</label><h4 id="k_eficiencia" class="text-xl font-black text-green-700">0%</h4></div>
+      </div>
+
+      <input type="text" id="buscador" onkeyup="mostrarDatos()" placeholder="🔍 BUSCAR..." class="p-3 border-2 border-blue-600 rounded-xl font-bold no-print">
+
+      <div class="scroll-area">
+        <table id="tablaG">
+          <thead>
+            <tr>
+              <th>AÑO</th><th>TIPO</th><th>CONCEPTO</th><th>PUESTO</th><th>INQUILINO</th><th>DNI</th><th>INICIO</th><th>FIN</th><th>MES</th><th>MONTO S/</th><th>PAGADO S/</th><th class="bg-blue-900">SALDO S/</th><th>ESTATUS</th><th>DOC. REF</th><th>F. PAGO</th><th>ACCION</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo"></tbody>
+        </table>
+      </div>
+
+      <div class="barra-resta">
+        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Generado</label><span id="r_gen" class="text-lg font-black italic">S/ 0.00</span></div>
+        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Recaudado</label><span id="r_rec" class="text-lg font-black text-green-400 italic">S/ 0.00</span></div>
+        <div class="bg-blue-600 px-6 py-1 rounded text-right border border-blue-400 shadow-lg">
+            <label class="text-[9px] font-bold text-blue-100 block uppercase">Saldo Total (Resta)</label>
+            <span id="r_resta" class="text-xl font-black text-white font-mono">S/ 0.00</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'SJM_V25_FINAL';
+    let database = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    function checkP() {
+      const s = document.getElementById('f_est').value;
+      const isPagado = (s === 'PAGADO');
+      document.getElementById('p_form').classList.toggle('hidden', !isPagado);
+      document.getElementById('div_boleta').classList.toggle('hidden', isPagado);
+    }
+
+    function guardarRegistro() {
+      const ap_pat = document.getElementById('f_ap_pat').value.trim();
+      const ap_mat = document.getElementById('f_ap_mat').value.trim();
+      const nombres = document.getElementById('f_nombres').value.trim();
+      
+      if(!ap_pat || !nombres) return alert("Ingrese Apellido Paterno y Nombres");
+      
+      const idEdit = document.getElementById('f_id_edit').value;
+      const monto = parseFloat(document.getElementById('f_mon').value) || 0;
+      const pagado = document.getElementById('f_est').value === 'PAGADO' ? (parseFloat(document.getElementById('f_pag').value) || 0) : 0;
+      
+      const reg = {
+        id: idEdit || "ID" + Date.now(),
+        anio: document.getElementById('f_anio').value,
+        tipo: document.getElementById('f_tipo').value,
+        con: document.getElementById('f_con').value,
+        ap_pat: ap_pat.toUpperCase(),
+        ap_mat: ap_mat.toUpperCase(),
+        nombres: nombres.toUpperCase(),
+        nom_completo: `${ap_pat} ${ap_mat} ${nombres}`.toUpperCase(), // Se guarda unificado para la tabla
+        dni: document.getElementById('f_dni').value || '-',
+        pue: document.getElementById('f_pue').value || '-',
+        fec_ini: document.getElementById('f_fec_ini').value || '-',
+        fec_fin: document.getElementById('f_fec_fin').value || '-',
+        cuo: document.getElementById('f_cuo').value || '1',
+        mes: document.getElementById('f_mes').value,
+        mon: monto,
+        pag: pagado,
+        est: document.getElementById('f_est').value,
+        doc_nro: document.getElementById('f_est').value === 'PAGADO' ? document.getElementById('f_fac_sunat').value : document.getElementById('f_nro_bol').value,
+        doc: document.getElementById('f_est').value === 'PAGADO' ? ('FAC: ' + document.getElementById('f_fac_sunat').value) : ('BOL: ' + document.getElementById('f_nro_bol').value),
+        fec_p: document.getElementById('f_fec_pago').value || '-',
+        obs: document.getElementById('f_obs').value || '-'
+      };
+      
+      if(idEdit) {
+        const index = database.findIndex(d => d.id === idEdit);
+        database[index] = reg;
+      } else {
+        database.push(reg);
+      }
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
+      mostrarDatos();
+      limpiar();
+    }
+
+    function mostrarDatos() {
+      const b = document.getElementById('buscador').value.toUpperCase();
+      const tbody = document.getElementById('cuerpo');
+      tbody.innerHTML = '';
+      let t_gen = 0, t_rec = 0, morosos = 0;
+      let deudaMap = {}, criticoMap = {};
+
+      let filtrados = (b === "") ? database.filter(d => d.anio === "2026") : database.filter(d => d.nom_completo.includes(b) || d.dni.includes(b) || d.tipo.includes(b));
+      filtrados.sort((a,b) => b.id.localeCompare(a.id));
+
+      filtrados.forEach(r => {
+        const d = r.mon - r.pag;
+        t_gen += r.mon; t_rec += r.pag;
+        if(r.est === 'PENDIENTE') {
+            morosos++;
+            deudaMap[r.nom_completo] = (deudaMap[r.nom_completo] || 0) + d;
+            criticoMap[r.con] = (criticoMap[r.con] || 0) + d;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = r.est === 'PAGADO' ? 'fila-verde' : 'fila-roja';
+        tr.innerHTML = `
+          <td>${r.anio}</td>
+          <td class="font-bold text-[10px]">${r.tipo}</td>
+          <td>${r.con}</td><td>${r.pue}</td>
+          <td class="text-left font-bold">${r.nom_completo}</td><td>${r.dni}</td>
+          <td>${r.fec_ini}</td><td>${r.fec_fin}</td><td>${r.mes}</td>
+          <td class="font-bold">S/ ${r.mon.toFixed(2)}</td>
+          <td class="font-bold text-green-700">S/ ${r.pag.toFixed(2)}</td>
+          <td class="font-black text-red-600 bg-slate-50">S/ ${(r.mon - r.pag).toFixed(2)}</td>
+          <td class="font-bold uppercase text-[10px]">${r.est}</td>
+          <td class="font-bold text-blue-800 text-[10px]">${r.doc}</td>
+          <td>${r.fec_p}</td>
+          <td>
+            <button onclick="editarRegistro('${r.id}')" class="btn-edit"><i class="fas fa-edit"></i></button>
+            <button onclick="eliminarRegistro('${r.id}')" class="btn-delete"><i class="fas fa-trash-alt"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('k_moro').innerText = morosos;
+      const topD = Object.entries(deudaMap).sort((a,b)=>b[1]-a[1])[0];
+      document.getElementById('k_top').innerText = topD ? topD[0] : "-";
+      const topC = Object.entries(criticoMap).sort((a,b)=>b[1]-a[1])[0];
+      document.getElementById('k_critico').innerText = topC ? topC[0] : "-";
+      document.getElementById('k_eficiencia').innerText = t_gen > 0 ? ((t_rec/t_gen)*100).toFixed(0) + "%" : "0%";
+      document.getElementById('r_gen').innerText = `S/ ${t_gen.toFixed(2)}`;
+      document.getElementById('r_rec').innerText = `S/ ${t_rec.toFixed(2)}`;
+      document.getElementById('r_resta').innerText = `S/ ${(t_gen - t_rec).toFixed(2)}`;
+    }
+
+    function editarRegistro(id) {
+      const r = database.find(d => d.id === id);
+      if(!r) return;
+
+      document.getElementById('f_id_edit').value = r.id;
+      document.getElementById('f_anio').value = r.anio;
+      document.getElementById('f_con').value = r.con;
+      document.getElementById('f_tipo').value = r.tipo;
+      document.getElementById('f_ap_pat').value = r.ap_pat;
+      document.getElementById('f_ap_mat').value = r.ap_mat || '';
+      document.getElementById('f_nombres').value = r.nombres;
+      document.getElementById('f_dni').value = r.dni;
+      document.getElementById('f_pue').value = r.pue;
+      document.getElementById('f_fec_ini').value = r.fec_ini;
+      document.getElementById('f_fec_fin').value = r.fec_fin;
+      document.getElementById('f_cuo').value = r.cuo;
+      document.getElementById('f_mes').value = r.mes;
+      document.getElementById('f_mon').value = r.mon;
+      document.getElementById('f_est').value = r.est;
+      checkP();
+      
+      if(r.est === 'PAGADO') {
+        document.getElementById('f_pag').value = r.pag;
+        document.getElementById('f_fac_sunat').value = r.doc_nro || '';
+        document.getElementById('f_fec_pago').value = r.fec_p;
+      } else {
+        document.getElementById('f_nro_bol').value = r.doc_nro || '';
+      }
+
+      document.getElementById('f_obs').value = r.obs;
+      
+      document.getElementById('titulo_form').innerText = "Editando Registro";
+      document.getElementById('btn_guardar').innerText = "Actualizar Registro";
+      document.getElementById('btn_cancelar').classList.remove('hidden');
+    }
+
+    window.eliminarRegistro = function(idRecibido) {
+        if(confirm("¿Desea borrar este registro?")) {
+            database = database.filter(d => d.id !== idRecibido);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
+            mostrarDatos();
+        }
+    }
+
+    function descargarExcel() {
+        const ws = XLSX.utils.json_to_sheet(database);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Cobranza");
+        XLSX.writeFile(wb, "SISTEMA_2026.xlsx");
+    }
+
+    function imprimirPantalla() {
+        const v = window.open('', '', 'height=700,width=1000');
+        v.document.write('<html><head><style>table{width:100%;border-collapse:collapse;font-family:sans-serif;} th,td{border:1px solid #000;padding:4px;font-size:9px;text-align:center;} th{background:#eee;}</style></head><body>');
+        v.document.write('<h2 style="text-align:center">REPORTE COBRANZA - SAN JOSÉ 2026</h2>');
+        const cl = document.getElementById('tablaG').cloneNode(true);
+        const rows = cl.rows; for (let i = 0; i < rows.length; i++) rows[i].deleteCell(-1);
+        v.document.write(cl.outerHTML);
+        v.document.write(`<div style="text-align:right; margin-top:20px"><b>SALDO TOTAL PENDIENTE: ${document.getElementById('r_resta').innerText}</b></div>`);
+        v.document.write('</body></html>'); v.document.close();
+        setTimeout(()=>v.print(), 500);
+    }
+
+    function limpiar() {
+        document.getElementById('f_id_edit').value = '';
+        document.getElementById('f_ap_pat').value = '';
+        document.getElementById('f_ap_mat').value = '';
+        document.getElementById('f_nombres').value = '';
+        document.getElementById('f_dni').value = '';
+        document.getElementById('f_pue').value = '';
+        document.getElementById('f_nro_bol').value = '';
+        document.getElementById('f_fac_sunat').value = '';
+        document.getElementById('f_pag').value = '';
+        document.getElementById('f_fec_pago').value = '';
+        document.getElementById('f_mon').value = '0.00';
+        document.getElementById('f_est').value = 'PENDIENTE';
+        document.getElementById('f_obs').value = '';
+        
+        document.getElementById('titulo_form').innerText = "Registro de Pagos";
+        document.getElementById('btn_guardar').innerText = "Registrar";
+        document.getElementById('btn_cancelar').classList.add('hidden');
+        checkP();
+    }
+    window.onload = mostrarDatos;
+  </script>
+</body>
+</html>
