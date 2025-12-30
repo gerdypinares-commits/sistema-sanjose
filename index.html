@@ -22,6 +22,9 @@
     .inp { border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; width: 100%; margin-bottom: 8px; font-size: 13px; }
     .btn-delete { color: #ef4444; cursor: pointer; font-size: 16px; border: none; background: transparent; }
     .btn-edit { color: #3b82f6; cursor: pointer; font-size: 16px; border: none; background: transparent; margin-right: 8px; }
+    /* Estilo para los nuevos filtros rápidos */
+    .filter-bar { background: #fefce8; padding: 10px; border-radius: 8px; border: 1px solid #fde047; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
+    .filter-item { flex: 1; }
   </style>
 </head>
 <body>
@@ -49,9 +52,19 @@
         <div>
             <label class="lbl">Concepto</label>
             <select id="f_con" class="inp font-bold">
-                <option>ALQUILER</option><option>ALQUILER POR DÍA</option><option>VIGILANCIA</option>
-                <option>AGUA</option><option>LUZ</option><option>ARBITRIOS</option>
-                <option>IMPUESTOS</option><option>PUBLICIDAD</option><option>ALCANTARILLADO</option>
+                <option>ALQUILER</option>
+                <option>ALQUILER DE ESPACIO</option>
+                <option>VIGILANCIA</option>
+                <option>AGUA</option>
+                <option>LUZ</option>
+                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2022</option>
+                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2023</option>
+                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2024</option>
+                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2025</option>
+                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2026</option>
+                <option>SERVICIO DE ANUNCIO</option>
+                <option>PAGO DE CRONOGRAMA</option>
+                <option>ALCANTARILLADO</option>
             </select>
         </div>
       </div>
@@ -84,8 +97,9 @@
       <div class="grid grid-cols-2 gap-2">
         <div><label class="lbl">N° Cuota</label><input type="text" id="f_cuo" class="inp" value="1"></div>
         <div>
-            <label class="lbl">Mes</label>
+            <label class="lbl">Mes Correspondiente</label>
             <select id="f_mes" class="inp">
+                <option value="">-- Seleccionar --</option>
                 <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
                 <option>Julio</option><option>Agosto</option><option>Setiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
             </select>
@@ -107,12 +121,12 @@
             <label class="lbl text-green-700">Pagó S/</label><input type="number" id="f_pag" class="inp font-bold">
             <label class="lbl text-green-700">Factura Sunat / Recibo</label>
             <input type="text" id="f_fac_sunat" class="inp" placeholder="N° DOCUMENTO">
-            <label class="lbl">Fecha de Pago</label><input type="date" id="f_fec_pago" class="inp">
+            <label class="lbl">Fecha de Cobro (Caja)</label><input type="date" id="f_fec_pago" class="inp">
         </div>
       </div>
 
       <label class="lbl">Observaciones / Detalle</label>
-      <textarea id="f_obs" class="inp h-12 uppercase" placeholder="Ej: Del 15 de mayo al 15 de junio"></textarea>
+      <textarea id="f_obs" class="inp h-12 uppercase" placeholder="Ej: Pago adelantado"></textarea>
 
       <button id="btn_guardar" onclick="guardarRegistro()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg uppercase text-xs tracking-widest">Registrar</button>
       <button id="btn_cancelar" onclick="limpiar()" class="w-full bg-gray-400 text-white font-bold py-2 rounded-lg mt-2 hidden">Cancelar Edición</button>
@@ -128,6 +142,35 @@
 
       <input type="text" id="buscador" onkeyup="mostrarDatos()" placeholder="🔍 BUSCAR POR NOMBRE, DNI O PUESTO..." class="p-3 border-2 border-blue-600 rounded-xl font-bold no-print">
 
+      <div class="filter-bar no-print">
+         <div class="filter-item">
+            <label class="lbl text-blue-800">Filtrar por Año</label>
+            <select id="filt_anio" onchange="mostrarDatos()" class="inp !mb-0">
+                <option value="">TODOS</option><option>2026</option><option>2025</option><option>2024</option>
+            </select>
+         </div>
+         <div class="filter-item">
+            <label class="lbl text-blue-800">Mes</label>
+            <select id="filt_mes" onchange="mostrarDatos()" class="inp !mb-0">
+                <option value="">TODOS</option>
+                <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
+                <option>Julio</option><option>Agosto</option><option>Setiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+            </select>
+         </div>
+         <div class="filter-item">
+            <label class="lbl text-blue-800">Concepto</label>
+            <select id="filt_con" onchange="mostrarDatos()" class="inp !mb-0">
+                <option value="">TODOS LOS CONCEPTOS</option>
+                <option>ALQUILER</option><option>ALQUILER DE ESPACIO</option><option>VIGILANCIA</option>
+            </select>
+         </div>
+         <div class="filter-item">
+            <label class="lbl text-red-700 font-bold">FLUJO POR DÍA (FECHA PAGO)</label>
+            <input type="date" id="filt_fecha" onchange="mostrarDatos()" class="inp !mb-0 border-red-400">
+         </div>
+         <button onclick="resetFiltros()" class="bg-gray-200 px-3 py-2 rounded text-[10px] font-bold">LIMPIAR FILTROS</button>
+      </div>
+
       <div class="scroll-area">
         <table id="tablaG">
           <thead>
@@ -137,7 +180,7 @@
               <th>TIPO</th>
               <th>N° PUESTO</th>
               <th>NOMBRES</th>
-              <th>DNI</th>
+              <th>DNI / RUC</th>
               <th>N° CUOTA</th>
               <th>DETALLE (FECHAS)</th>
               <th>MONTO S/</th>
@@ -154,10 +197,10 @@
       </div>
 
       <div class="barra-resta">
-        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Generado</label><span id="r_gen" class="text-lg font-black italic">S/ 0.00</span></div>
-        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Recaudado</label><span id="r_rec" class="text-lg font-black text-green-400 italic">S/ 0.00</span></div>
+        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Total Generado</label><span id="r_gen" class="text-lg font-black italic">S/ 0.00</span></div>
+        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Total Recaudado</label><span id="r_rec" class="text-lg font-black text-green-400 italic">S/ 0.00</span></div>
         <div class="bg-blue-600 px-6 py-1 rounded text-right border border-blue-400 shadow-lg">
-            <label class="text-[9px] font-bold text-blue-100 block uppercase">Saldo Total (Resta)</label>
+            <label class="text-[9px] font-bold text-blue-100 block uppercase">Saldo Pendiente</label>
             <span id="r_resta" class="text-xl font-black text-white font-mono">S/ 0.00</span>
         </div>
       </div>
@@ -173,6 +216,15 @@
       const isPagado = (s === 'PAGADO');
       document.getElementById('p_form').classList.toggle('hidden', !isPagado);
       document.getElementById('div_boleta').classList.toggle('hidden', isPagado);
+    }
+
+    function resetFiltros() {
+        document.getElementById('filt_anio').value = "";
+        document.getElementById('filt_mes').value = "";
+        document.getElementById('filt_con').value = "";
+        document.getElementById('filt_fecha').value = "";
+        document.getElementById('buscador').value = "";
+        mostrarDatos();
     }
 
     function guardarRegistro() {
@@ -198,6 +250,7 @@
         nom_completo: `${ap_pat} ${document.getElementById('f_ap_mat').value} ${nombres}`.toUpperCase(),
         dni: document.getElementById('f_dni').value || '-',
         cuo: document.getElementById('f_cuo').value || '1',
+        mes: document.getElementById('f_mes').value,
         fec_ini: document.getElementById('f_fec_ini').value || '',
         fec_fin: document.getElementById('f_fec_fin').value || '',
         mon: monto,
@@ -222,20 +275,29 @@
 
     function mostrarDatos() {
       const b = document.getElementById('buscador').value.toUpperCase();
+      const fAnio = document.getElementById('filt_anio').value;
+      const fMes = document.getElementById('filt_mes').value;
+      const fCon = document.getElementById('filt_con').value;
+      const fFecha = document.getElementById('filt_fecha').value;
+
       const tbody = document.getElementById('cuerpo');
       tbody.innerHTML = '';
       let t_gen = 0, t_rec = 0, morosos = 0;
       let deudaMap = {}, criticoMap = {};
 
-      let filtrados = database.filter(d => 
-        d.nom_completo.includes(b) || d.dni.includes(b) || d.pue.includes(b) || d.tipo.includes(b)
-      );
+      let filtrados = database.filter(d => {
+        const matchBuscador = d.nom_completo.includes(b) || d.dni.includes(b) || d.pue.includes(b);
+        const matchAnio = fAnio === "" || d.anio === fAnio;
+        const matchMes = fMes === "" || d.mes === fMes;
+        const matchCon = fCon === "" || d.con === fCon;
+        const matchFecha = fFecha === "" || d.fec_p === fFecha;
+
+        return matchBuscador && matchAnio && matchMes && matchCon && matchFecha;
+      });
       
-      // Ordenar por ID descendente (más recientes arriba)
       filtrados.sort((a,b) => b.id.localeCompare(a.id));
 
       filtrados.forEach(r => {
-        const saldo = r.mon - r.pag;
         t_gen += r.mon; t_rec += r.pag;
         if(r.est === 'PENDIENTE') {
             morosos++;
@@ -245,13 +307,11 @@
 
         const tr = document.createElement('tr');
         tr.className = r.est === 'PAGADO' ? 'fila-verde' : 'fila-roja';
-        
-        // Detalle de fechas amigable
-        const detalleFechas = (r.fec_ini && r.fec_fin) ? `Del ${r.fec_ini} al ${r.fec_fin}` : '-';
+        const detalleFechas = (r.fec_ini && r.fec_fin) ? `Del ${r.fec_ini} al ${r.fec_fin}` : (r.mes || '-');
 
         tr.innerHTML = `
           <td>${r.anio}</td>
-          <td class="font-bold">${r.con}</td>
+          <td class="font-bold text-[10px]">${r.con}</td>
           <td class="text-[9px]">${r.tipo}</td>
           <td class="font-bold">${r.pue}</td>
           <td class="text-left font-bold">${r.nom_completo}</td>
@@ -261,7 +321,7 @@
           <td class="font-bold">S/ ${r.mon.toFixed(2)}</td>
           <td class="font-bold uppercase">${r.est}</td>
           <td class="text-blue-700 font-bold">${r.doc || '-'}</td>
-          <td>${r.fec_p}</td>
+          <td class="font-bold">${r.fec_p}</td>
           <td class="font-bold text-green-700">S/ ${r.pag.toFixed(2)}</td>
           <td class="text-[10px]">${r.obs}</td>
           <td class="no-print">
@@ -286,7 +346,6 @@
     function editarRegistro(id) {
       const r = database.find(d => d.id === id);
       if(!r) return;
-
       document.getElementById('f_id_edit').value = r.id;
       document.getElementById('f_anio').value = r.anio;
       document.getElementById('f_con').value = r.con;
@@ -299,11 +358,10 @@
       document.getElementById('f_fec_ini').value = r.fec_ini;
       document.getElementById('f_fec_fin').value = r.fec_fin;
       document.getElementById('f_cuo').value = r.cuo;
+      document.getElementById('f_mes').value = r.mes || '';
       document.getElementById('f_mon').value = r.mon;
       document.getElementById('f_est').value = r.est;
-      
       checkP();
-      
       if(r.est === 'PAGADO') {
         document.getElementById('f_pag').value = r.pag;
         document.getElementById('f_fac_sunat').value = r.doc;
@@ -311,7 +369,6 @@
       } else {
         document.getElementById('f_nro_bol').value = r.doc;
       }
-
       document.getElementById('f_obs').value = r.obs;
       document.getElementById('titulo_form').innerText = "Editando Registro";
       document.getElementById('btn_guardar').innerText = "Actualizar Registro";
@@ -339,7 +396,7 @@
         v.document.write('<h2 style="text-align:center">REPORTE COBRANZA - MERCADO SAN JOSÉ</h2>');
         const cl = document.getElementById('tablaG').cloneNode(true);
         const rows = cl.rows; 
-        for (let i = 0; i < rows.length; i++) rows[i].deleteCell(-1); // Quitar columna acciones
+        for (let i = 0; i < rows.length; i++) rows[i].deleteCell(-1);
         v.document.write(cl.outerHTML);
         v.document.write(`<div style="text-align:right; margin-top:20px"><b>SALDO PENDIENTE TOTAL: ${document.getElementById('r_resta').innerText}</b></div>`);
         v.document.write('</body></html>'); v.document.close();
@@ -362,7 +419,7 @@
         document.getElementById('f_obs').value = '';
         document.getElementById('f_fec_ini').value = '';
         document.getElementById('f_fec_fin').value = '';
-        
+        document.getElementById('f_mes').value = '';
         document.getElementById('titulo_form').innerText = "Registro de Pagos";
         document.getElementById('btn_guardar').innerText = "Registrar";
         document.getElementById('btn_cancelar').classList.add('hidden');
