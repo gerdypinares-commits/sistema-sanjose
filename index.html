@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>SISTEMA SAN JOSÉ 2026 - V25</title>
+  <title>SISTEMA SAN JOSÉ 2026 - V26 FINAL</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -20,11 +20,10 @@
     .fila-verde { background-color: #f0fdf4; }
     .lbl { display: block; font-size: 10px; font-weight: 800; color: #334155; margin-bottom: 2px; text-transform: uppercase; }
     .inp { border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; width: 100%; margin-bottom: 8px; font-size: 13px; }
-    .btn-delete { color: #ef4444; cursor: pointer; font-size: 16px; border: none; background: transparent; }
-    .btn-edit { color: #3b82f6; cursor: pointer; font-size: 16px; border: none; background: transparent; margin-right: 8px; }
-    /* Estilo para los nuevos filtros rápidos */
     .filter-bar { background: #fefce8; padding: 10px; border-radius: 8px; border: 1px solid #fde047; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
     .filter-item { flex: 1; }
+    .btn-delete { color: #ef4444; cursor: pointer; font-size: 16px; border: none; background: transparent; }
+    .btn-edit { color: #3b82f6; cursor: pointer; font-size: 16px; border: none; background: transparent; margin-right: 8px; }
   </style>
 </head>
 <body>
@@ -32,6 +31,8 @@
   <header class="bg-slate-900 text-white p-3 flex justify-between items-center no-print">
     <h2 class="font-black italic text-lg uppercase">MERCADO SAN JOSÉ <span class="text-blue-400">2026</span></h2>
     <div class="flex gap-2">
+      <input type="file" id="importExcel" class="hidden" accept=".xlsx, .xls" onchange="importarData(event)">
+      <button onclick="document.getElementById('importExcel').click()" class="bg-orange-600 px-4 py-2 rounded font-bold text-xs">SUBIDA MASIVA</button>
       <button onclick="descargarExcel()" class="bg-emerald-600 px-4 py-2 rounded font-bold text-xs">EXCEL</button>
       <button onclick="imprimirPantalla()" class="bg-slate-700 px-4 py-2 rounded font-bold text-xs">IMPRIMIR</button>
     </div>
@@ -44,40 +45,29 @@
       <input type="hidden" id="f_id_edit"> 
       <div class="grid grid-cols-2 gap-2">
         <div>
-            <label class="lbl">Año</label>
-            <select id="f_anio" class="inp font-bold">
-                <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
-            </select>
+          <label class="lbl">Año</label>
+          <select id="f_anio" class="inp font-bold">
+            <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
+          </select>
         </div>
         <div>
-            <label class="lbl">Concepto</label>
-            <select id="f_con" class="inp font-bold">
-                <option>ALQUILER</option>
-                <option>ALQUILER DE ESPACIO</option>
-                <option>VIGILANCIA</option>
-                <option>AGUA</option>
-                <option>LUZ</option>
-                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2022</option>
-                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2023</option>
-                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2024</option>
-                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2025</option>
-                <option>ARBITRIOS Y / IMPUESTO PREDIAL 2026</option>
-                <option>SERVICIO DE ANUNCIO</option>
-                <option>PAGO DE CRONOGRAMA</option>
-                <option>ALCANTARILLADO</option>
-            </select>
+          <label class="lbl">Concepto</label>
+          <select id="f_con" class="inp font-bold">
+            <option>ALQUILER</option><option>ALQUILER DE ESPACIO</option>
+            <option>VIGILANCIA</option><option>AGUA</option><option>LUZ</option>
+            <option>BAÑO 1</option><option>BAÑO 2</option>
+            <option>ARBITRIOS / PREDIAL 2026</option><option>ARBITRIOS / PREDIAL 2025</option>
+            <option>ARBITRIOS / PREDIAL 2024</option><option>ARBITRIOS / PREDIAL 2023</option>
+            <option>SERVICIO DE ANUNCIO</option><option>PAGO DE CRONOGRAMA</option><option>ALCANTARILLADO</option>
+          </select>
         </div>
       </div>
 
-      <label class="lbl">Tipo de Inquilino</label>
+      <label class="lbl">Tipo</label>
       <select id="f_tipo" class="inp font-bold">
-          <option>SOCIO</option>
-          <option>INQUILINOS EXTERNOS</option>
-          <option>INQUILINOS DE FIERRO 1ER PISO</option>
-          <option>INQUILINOS (INTERNOS) MATERIAL NOBLE</option>
-          <option>INQUILINOS SEGUNDO PISO</option>
-          <option>FERIA 1</option>
-          <option>FERIA 2</option>
+        <option>SOCIO</option><option>INQUILINOS EXTERNOS</option>
+        <option>INQUILINOS DE FIERRO 1ER PISO</option><option>INQUILINOS MATERIAL NOBLE</option>
+        <option>INQUILINOS SEGUNDO PISO</option><option>FERIA 1</option><option>FERIA 2</option>
       </select>
 
       <label class="lbl">Apellido Paterno</label><input type="text" id="f_ap_pat" class="inp uppercase">
@@ -97,99 +87,74 @@
       <div class="grid grid-cols-2 gap-2">
         <div><label class="lbl">N° Cuota</label><input type="text" id="f_cuo" class="inp" value="1"></div>
         <div>
-            <label class="lbl">Mes Correspondiente</label>
-            <select id="f_mes" class="inp">
-                <option value="">-- Seleccionar --</option>
-                <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
-                <option>Julio</option><option>Agosto</option><option>Setiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
-            </select>
+          <label class="lbl">Mes Correspondiente</label>
+          <select id="f_mes" class="inp">
+            <option value="">-- Seleccionar --</option>
+            <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
+            <option>Julio</option><option>Agosto</option><option>Setiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+          </select>
         </div>
       </div>
 
       <div class="bg-blue-50 p-2 rounded border border-blue-100 mb-2">
         <div class="grid grid-cols-2 gap-2">
-            <div><label class="lbl text-red-600">Monto S/</label><input type="number" id="f_mon" class="inp font-bold" value="0.00"></div>
-            <div><label class="lbl">Estado</label><select id="f_est" onchange="checkP()" class="inp font-bold"><option value="PENDIENTE">PENDIENTE</option><option value="PAGADO">PAGADO</option></select></div>
+          <div><label class="lbl text-red-600">Monto S/</label><input type="number" id="f_mon" class="inp font-bold" value="0.00"></div>
+          <div><label class="lbl">Estado</label><select id="f_est" onchange="checkP()" class="inp font-bold"><option value="PENDIENTE">PENDIENTE</option><option value="PAGADO">PAGADO</option></select></div>
         </div>
-        
         <div id="div_boleta">
-            <label class="lbl text-blue-600">N° Boleta / Recibo</label>
-            <input type="text" id="f_nro_bol" class="inp" placeholder="Ejem: 006338">
+          <label class="lbl text-blue-600">N° Boleta / Recibo</label>
+          <input type="text" id="f_nro_bol" class="inp" placeholder="Ejem: 006338">
         </div>
-
         <div id="p_form" class="hidden">
-            <label class="lbl text-green-700">Pagó S/</label><input type="number" id="f_pag" class="inp font-bold">
-            <label class="lbl text-green-700">Factura Sunat / Recibo</label>
-            <input type="text" id="f_fac_sunat" class="inp" placeholder="N° DOCUMENTO">
-            <label class="lbl">Fecha de Cobro (Caja)</label><input type="date" id="f_fec_pago" class="inp">
+          <label class="lbl text-green-700">Pagó S/</label><input type="number" id="f_pag" class="inp font-bold">
+          <label class="lbl text-green-700">Documento Sunat</label>
+          <input type="text" id="f_fac_sunat" class="inp">
+          <label class="lbl">Fecha Cobro</label><input type="date" id="f_fec_pago" class="inp">
         </div>
       </div>
 
-      <label class="lbl">Observaciones / Detalle</label>
-      <textarea id="f_obs" class="inp h-12 uppercase" placeholder="Ej: Pago adelantado"></textarea>
+      <label class="lbl">Observaciones</label>
+      <textarea id="f_obs" class="inp h-12 uppercase"></textarea>
 
-      <button id="btn_guardar" onclick="guardarRegistro()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg uppercase text-xs tracking-widest">Registrar</button>
-      <button id="btn_cancelar" onclick="limpiar()" class="w-full bg-gray-400 text-white font-bold py-2 rounded-lg mt-2 hidden">Cancelar Edición</button>
+      <button onclick="guardarRegistro()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg uppercase text-xs tracking-widest">Registrar</button>
+      <button id="btn_cancelar" onclick="limpiar(true)" class="w-full bg-gray-400 text-white font-bold py-2 rounded-lg mt-2 hidden">Cancelar Edición / Nuevo</button>
     </aside>
 
     <main class="flex flex-col gap-2 overflow-hidden">
       <div class="grid grid-cols-4 gap-3 no-print">
         <div class="kpi-card border-red-500"><label class="lbl">Morosos Actuales</label><h4 id="k_moro" class="text-xl font-black text-red-600">0</h4></div>
         <div class="kpi-card border-orange-500"><label class="lbl">Máximo Deudor</label><h4 id="k_top" class="text-[10px] font-black uppercase truncate">-</h4></div>
-        <div class="kpi-card border-purple-500"><label class="lbl">Concepto más Crítico</label><h4 id="k_critico" class="text-lg font-black text-slate-800">-</h4></div>
+        <div class="kpi-card border-purple-500"><label class="lbl">Concepto Crítico</label><h4 id="k_critico" class="text-lg font-black text-slate-800">-</h4></div>
         <div class="kpi-card border-green-500"><label class="lbl">Eficiencia Cobro</label><h4 id="k_eficiencia" class="text-xl font-black text-green-700">0%</h4></div>
       </div>
 
       <input type="text" id="buscador" onkeyup="mostrarDatos()" placeholder="🔍 BUSCAR POR NOMBRE, DNI O PUESTO..." class="p-3 border-2 border-blue-600 rounded-xl font-bold no-print">
 
       <div class="filter-bar no-print">
-         <div class="filter-item">
-            <label class="lbl text-blue-800">Filtrar por Año</label>
-            <select id="filt_anio" onchange="mostrarDatos()" class="inp !mb-0">
-                <option value="">TODOS</option><option>2026</option><option>2025</option><option>2024</option>
-            </select>
+         <div class="filter-item"><label class="lbl">Año</label>
+            <select id="filt_anio" class="inp !mb-0"><option value="">TODOS</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select>
          </div>
-         <div class="filter-item">
-            <label class="lbl text-blue-800">Mes</label>
-            <select id="filt_mes" onchange="mostrarDatos()" class="inp !mb-0">
-                <option value="">TODOS</option>
-                <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
-                <option>Julio</option><option>Agosto</option><option>Setiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
-            </select>
+         <div class="filter-item"><label class="lbl">Mes</label>
+            <select id="filt_mes" class="inp !mb-0"><option value="">TODOS</option><option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Setiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option></select>
          </div>
-         <div class="filter-item">
-            <label class="lbl text-blue-800">Concepto</label>
-            <select id="filt_con" onchange="mostrarDatos()" class="inp !mb-0">
-                <option value="">TODOS LOS CONCEPTOS</option>
-                <option>ALQUILER</option><option>ALQUILER DE ESPACIO</option><option>VIGILANCIA</option>
-            </select>
+         <div class="filter-item"><label class="lbl">Concepto</label>
+            <select id="filt_con" class="inp !mb-0"><option value="">TODOS</option><option>ALQUILER</option><option>VIGILANCIA</option><option>AGUA</option><option>LUZ</option><option>BAÑO 1</option><option>BAÑO 2</option></select>
          </div>
-         <div class="filter-item">
-            <label class="lbl text-red-700 font-bold">FLUJO POR DÍA (FECHA PAGO)</label>
-            <input type="date" id="filt_fecha" onchange="mostrarDatos()" class="inp !mb-0 border-red-400">
+         <div class="filter-item"><label class="lbl">Tipo</label>
+            <select id="filt_tipo" class="inp !mb-0"><option value="">TODOS</option><option>SOCIO</option><option>INQUILINOS EXTERNOS</option><option>FERIA 1</option></select>
          </div>
-         <button onclick="resetFiltros()" class="bg-gray-200 px-3 py-2 rounded text-[10px] font-bold">LIMPIAR FILTROS</button>
+         <div class="filter-item"><label class="lbl">Flujo por Día</label>
+            <input type="date" id="filt_fecha" class="inp !mb-0">
+         </div>
+         <button onclick="mostrarDatos()" class="bg-blue-700 text-white px-4 py-2 rounded text-[10px] font-bold uppercase">Ejecutar Filtro</button>
+         <button onclick="resetFiltros()" class="bg-gray-200 px-3 py-2 rounded text-[10px] font-bold">LIMPIAR</button>
       </div>
 
       <div class="scroll-area">
         <table id="tablaG">
           <thead>
             <tr>
-              <th>AÑO</th>
-              <th>CONCEPTO</th>
-              <th>TIPO</th>
-              <th>N° PUESTO</th>
-              <th>NOMBRES</th>
-              <th>DNI / RUC</th>
-              <th>N° CUOTA</th>
-              <th>DETALLE (FECHAS)</th>
-              <th>MONTO S/</th>
-              <th>ESTATUS</th>
-              <th>RECIBO DE PAGO</th>
-              <th>FECHA DE PAGO</th>
-              <th>MONTO PAGADO</th>
-              <th>OBSERVACIÓN</th>
-              <th class="no-print">ACCIÓN</th>
+              <th>AÑO</th><th>CONCEPTO</th><th>TIPO</th><th>PUESTO</th><th>NOMBRES</th><th>DNI</th><th>CUOTA</th><th>DETALLE</th><th>MONTO</th><th>ESTADO</th><th>RECIBO</th><th>FECHA PAGO</th><th>PAGADO</th><th>OBS</th><th class="no-print">ACCIÓN</th>
             </tr>
           </thead>
           <tbody id="cuerpo"></tbody>
@@ -197,18 +162,17 @@
       </div>
 
       <div class="barra-resta">
-        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Total Generado</label><span id="r_gen" class="text-lg font-black italic">S/ 0.00</span></div>
-        <div class="text-right"><label class="text-[9px] font-bold text-slate-400 block uppercase">Total Recaudado</label><span id="r_rec" class="text-lg font-black text-green-400 italic">S/ 0.00</span></div>
+        <div class="text-right"><label class="lbl !text-slate-400">Total Generado</label><span id="r_gen" class="text-lg font-black italic">S/ 0.00</span></div>
+        <div class="text-right"><label class="lbl !text-slate-400">Total Recaudado</label><span id="r_rec" class="text-lg font-black text-green-400 italic">S/ 0.00</span></div>
         <div class="bg-blue-600 px-6 py-1 rounded text-right border border-blue-400 shadow-lg">
-            <label class="text-[9px] font-bold text-blue-100 block uppercase">Saldo Pendiente</label>
-            <span id="r_resta" class="text-xl font-black text-white font-mono">S/ 0.00</span>
+            <label class="lbl !text-blue-100">Saldo Pendiente</label><span id="r_resta" class="text-xl font-black text-white">S/ 0.00</span>
         </div>
       </div>
     </main>
   </div>
 
   <script>
-    const STORAGE_KEY = 'SJM_V25_FINAL';
+    const STORAGE_KEY = 'SJM_V26_FINAL';
     let database = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     function checkP() {
@@ -219,24 +183,18 @@
     }
 
     function resetFiltros() {
-        document.getElementById('filt_anio').value = "";
-        document.getElementById('filt_mes').value = "";
-        document.getElementById('filt_con').value = "";
-        document.getElementById('filt_fecha').value = "";
-        document.getElementById('buscador').value = "";
-        mostrarDatos();
+      ['filt_anio','filt_mes','filt_con','filt_tipo','filt_fecha','buscador'].forEach(id => document.getElementById(id).value = "");
+      mostrarDatos();
     }
 
     function guardarRegistro() {
       const ap_pat = document.getElementById('f_ap_pat').value.trim();
       const nombres = document.getElementById('f_nombres').value.trim();
-      
-      if(!ap_pat || !nombres) return alert("Ingrese Apellido Paterno y Nombres");
+      if(!ap_pat || !nombres) return alert("Ingrese Apellido y Nombres");
       
       const idEdit = document.getElementById('f_id_edit').value;
       const monto = parseFloat(document.getElementById('f_mon').value) || 0;
       const esPagado = document.getElementById('f_est').value === 'PAGADO';
-      const pagado = esPagado ? (parseFloat(document.getElementById('f_pag').value) || 0) : 0;
       
       const reg = {
         id: idEdit || "ID" + Date.now(),
@@ -257,7 +215,7 @@
         est: document.getElementById('f_est').value,
         doc: esPagado ? document.getElementById('f_fac_sunat').value : document.getElementById('f_nro_bol').value,
         fec_p: esPagado ? document.getElementById('f_fec_pago').value : '-',
-        pag: pagado,
+        pag: esPagado ? (parseFloat(document.getElementById('f_pag').value) || 0) : 0,
         obs: document.getElementById('f_obs').value.toUpperCase() || '-'
       };
       
@@ -270,7 +228,7 @@
       
       localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
       mostrarDatos();
-      limpiar();
+      limpiar(false); // No limpia nombres para "registro pegajoso"
     }
 
     function mostrarDatos() {
@@ -278,6 +236,7 @@
       const fAnio = document.getElementById('filt_anio').value;
       const fMes = document.getElementById('filt_mes').value;
       const fCon = document.getElementById('filt_con').value;
+      const fTipo = document.getElementById('filt_tipo').value;
       const fFecha = document.getElementById('filt_fecha').value;
 
       const tbody = document.getElementById('cuerpo');
@@ -285,50 +244,33 @@
       let t_gen = 0, t_rec = 0, morosos = 0;
       let deudaMap = {}, criticoMap = {};
 
-      let filtrados = database.filter(d => {
-        const matchBuscador = d.nom_completo.includes(b) || d.dni.includes(b) || d.pue.includes(b);
-        const matchAnio = fAnio === "" || d.anio === fAnio;
-        const matchMes = fMes === "" || d.mes === fMes;
-        const matchCon = fCon === "" || d.con === fCon;
-        const matchFecha = fFecha === "" || d.fec_p === fFecha;
-
-        return matchBuscador && matchAnio && matchMes && matchCon && matchFecha;
-      });
-      
-      filtrados.sort((a,b) => b.id.localeCompare(a.id));
+      const filtrados = database.filter(d => {
+        return (d.nom_completo.includes(b) || d.dni.includes(b) || d.pue.includes(b)) &&
+               (fAnio === "" || d.anio === fAnio) && (fMes === "" || d.mes === fMes) &&
+               (fCon === "" || d.con === fCon) && (fTipo === "" || d.tipo === fTipo) &&
+               (fFecha === "" || d.fec_p === fFecha);
+      }).sort((a,b) => b.id.localeCompare(a.id));
 
       filtrados.forEach(r => {
         t_gen += r.mon; t_rec += r.pag;
         if(r.est === 'PENDIENTE') {
-            morosos++;
-            deudaMap[r.nom_completo] = (deudaMap[r.nom_completo] || 0) + r.mon;
-            criticoMap[r.con] = (criticoMap[r.con] || 0) + r.mon;
+          morosos++;
+          deudaMap[r.nom_completo] = (deudaMap[r.nom_completo] || 0) + r.mon;
+          criticoMap[r.con] = (criticoMap[r.con] || 0) + r.mon;
         }
-
         const tr = document.createElement('tr');
         tr.className = r.est === 'PAGADO' ? 'fila-verde' : 'fila-roja';
-        const detalleFechas = (r.fec_ini && r.fec_fin) ? `Del ${r.fec_ini} al ${r.fec_fin}` : (r.mes || '-');
-
         tr.innerHTML = `
-          <td>${r.anio}</td>
-          <td class="font-bold text-[10px]">${r.con}</td>
-          <td class="text-[9px]">${r.tipo}</td>
-          <td class="font-bold">${r.pue}</td>
-          <td class="text-left font-bold">${r.nom_completo}</td>
-          <td>${r.dni}</td>
-          <td>${r.cuo}</td>
-          <td class="italic text-[10px]">${detalleFechas}</td>
-          <td class="font-bold">S/ ${r.mon.toFixed(2)}</td>
-          <td class="font-bold uppercase">${r.est}</td>
-          <td class="text-blue-700 font-bold">${r.doc || '-'}</td>
-          <td class="font-bold">${r.fec_p}</td>
-          <td class="font-bold text-green-700">S/ ${r.pag.toFixed(2)}</td>
-          <td class="text-[10px]">${r.obs}</td>
+          <td>${r.anio}</td><td class="font-bold">${r.con}</td><td>${r.tipo}</td><td class="font-bold">${r.pue}</td>
+          <td class="text-left font-bold">${r.nom_completo}</td><td>${r.dni}</td><td>${r.cuo}</td>
+          <td class="italic text-[10px]">${r.fec_ini ? 'Del '+r.fec_ini+' al '+r.fec_fin : r.mes}</td>
+          <td class="font-bold">S/ ${r.mon.toFixed(2)}</td><td class="font-bold">${r.est}</td>
+          <td class="text-blue-700 font-bold">${r.doc || '-'}</td><td class="font-bold">${r.fec_p}</td>
+          <td class="font-bold text-green-700">S/ ${r.pag.toFixed(2)}</td><td>${r.obs}</td>
           <td class="no-print">
             <button onclick="editarRegistro('${r.id}')" class="btn-edit"><i class="fas fa-edit"></i></button>
             <button onclick="eliminarRegistro('${r.id}')" class="btn-delete"><i class="fas fa-trash-alt"></i></button>
-          </td>
-        `;
+          </td>`;
         tbody.appendChild(tr);
       });
 
@@ -343,88 +285,42 @@
       document.getElementById('r_resta').innerText = `S/ ${(t_gen - t_rec).toFixed(2)}`;
     }
 
+    function importarData(e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const workbook = XLSX.read(evt.target.result, {type: 'binary'});
+        const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        database = [...database, ...json.map(i => ({...i, id: "ID"+Date.now()+Math.random(), mon:parseFloat(i.mon||0), pag:parseFloat(i.pag||0)}))];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
+        mostrarDatos();
+        alert("¡Data cargada con éxito!");
+      };
+      reader.readAsBinaryString(file);
+    }
+
     function editarRegistro(id) {
       const r = database.find(d => d.id === id);
       if(!r) return;
       document.getElementById('f_id_edit').value = r.id;
-      document.getElementById('f_anio').value = r.anio;
-      document.getElementById('f_con').value = r.con;
-      document.getElementById('f_tipo').value = r.tipo;
-      document.getElementById('f_ap_pat').value = r.ap_pat;
-      document.getElementById('f_ap_mat').value = r.ap_mat || '';
-      document.getElementById('f_nombres').value = r.nombres;
-      document.getElementById('f_dni').value = r.dni;
-      document.getElementById('f_pue').value = r.pue;
-      document.getElementById('f_fec_ini').value = r.fec_ini;
-      document.getElementById('f_fec_fin').value = r.fec_fin;
-      document.getElementById('f_cuo').value = r.cuo;
-      document.getElementById('f_mes').value = r.mes || '';
-      document.getElementById('f_mon').value = r.mon;
-      document.getElementById('f_est').value = r.est;
+      ['anio','con','tipo','ap_pat','ap_mat','nombres','dni','pue','fec_ini','fec_fin','cuo','mes','mon','est','obs'].forEach(k => document.getElementById('f_'+k).value = r[k] || '');
       checkP();
-      if(r.est === 'PAGADO') {
-        document.getElementById('f_pag').value = r.pag;
-        document.getElementById('f_fac_sunat').value = r.doc;
-        document.getElementById('f_fec_pago').value = r.fec_p;
-      } else {
-        document.getElementById('f_nro_bol').value = r.doc;
-      }
-      document.getElementById('f_obs').value = r.obs;
-      document.getElementById('titulo_form').innerText = "Editando Registro";
-      document.getElementById('btn_guardar').innerText = "Actualizar Registro";
+      if(r.est === 'PAGADO') { document.getElementById('f_pag').value = r.pag; document.getElementById('f_fac_sunat').value = r.doc; document.getElementById('f_fec_pago').value = r.fec_p; }
+      else { document.getElementById('f_nro_bol').value = r.doc; }
       document.getElementById('btn_cancelar').classList.remove('hidden');
     }
 
-    window.eliminarRegistro = function(idRecibido) {
-        if(confirm("¿Desea borrar este registro?")) {
-            database = database.filter(d => d.id !== idRecibido);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
-            mostrarDatos();
-        }
+    function limpiar(todo) {
+      if(todo) ['ap_pat','ap_mat','nombres','dni','pue','tipo'].forEach(id => document.getElementById('f_'+id).value = '');
+      ['id_edit','nro_bol','fac_sunat','pag','fec_pago','fec_ini','fec_fin','mes','obs'].forEach(id => document.getElementById('f_'+id).value = '');
+      document.getElementById('f_mon').value = '0.00'; document.getElementById('f_est').value = 'PENDIENTE';
+      document.getElementById('btn_cancelar').classList.add('hidden');
+      checkP();
     }
 
-    function descargarExcel() {
-        const ws = XLSX.utils.json_to_sheet(database);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Cobranza");
-        XLSX.writeFile(wb, "SISTEMA_SAN_JOSE_COBRANZA.xlsx");
-    }
-
-    function imprimirPantalla() {
-        const v = window.open('', '', 'height=700,width=1200');
-        v.document.write('<html><head><style>table{width:100%;border-collapse:collapse;font-family:sans-serif;} th,td{border:1px solid #000;padding:4px;font-size:8px;text-align:center;} th{background:#eee;}</style></head><body>');
-        v.document.write('<h2 style="text-align:center">REPORTE COBRANZA - MERCADO SAN JOSÉ</h2>');
-        const cl = document.getElementById('tablaG').cloneNode(true);
-        const rows = cl.rows; 
-        for (let i = 0; i < rows.length; i++) rows[i].deleteCell(-1);
-        v.document.write(cl.outerHTML);
-        v.document.write(`<div style="text-align:right; margin-top:20px"><b>SALDO PENDIENTE TOTAL: ${document.getElementById('r_resta').innerText}</b></div>`);
-        v.document.write('</body></html>'); v.document.close();
-        setTimeout(()=>v.print(), 500);
-    }
-
-    function limpiar() {
-        document.getElementById('f_id_edit').value = '';
-        document.getElementById('f_ap_pat').value = '';
-        document.getElementById('f_ap_mat').value = '';
-        document.getElementById('f_nombres').value = '';
-        document.getElementById('f_dni').value = '';
-        document.getElementById('f_pue').value = '';
-        document.getElementById('f_nro_bol').value = '';
-        document.getElementById('f_fac_sunat').value = '';
-        document.getElementById('f_pag').value = '';
-        document.getElementById('f_fec_pago').value = '';
-        document.getElementById('f_mon').value = '0.00';
-        document.getElementById('f_est').value = 'PENDIENTE';
-        document.getElementById('f_obs').value = '';
-        document.getElementById('f_fec_ini').value = '';
-        document.getElementById('f_fec_fin').value = '';
-        document.getElementById('f_mes').value = '';
-        document.getElementById('titulo_form').innerText = "Registro de Pagos";
-        document.getElementById('btn_guardar').innerText = "Registrar";
-        document.getElementById('btn_cancelar').classList.add('hidden');
-        checkP();
-    }
+    function eliminarRegistro(id) { if(confirm("¿Borrar?")) { database = database.filter(d => d.id !== id); localStorage.setItem(STORAGE_KEY, JSON.stringify(database)); mostrarDatos(); } }
+    function descargarExcel() { const ws = XLSX.utils.json_to_sheet(database); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "SJS_2026.xlsx"); }
+    function imprimirPantalla() { window.print(); }
     window.onload = mostrarDatos;
   </script>
 </body>
